@@ -34,6 +34,8 @@ COLLINEAR = 0
 COLIN_TOLERANCE = 10
 T = 10**COLIN_TOLERANCE
 T2 = 10.0**COLIN_TOLERANCE
+EPS = 0.01
+
 
 def visible_vertices(point, graph, origin=None, destination=None, scan='full'):
     """Returns list of Points in graph visible by point.
@@ -144,8 +146,11 @@ def edge_in_polygon(p1, p2, graph):
         return False
     if p1.polygon_id == -1 or p2.polygon_id == -1:
         return False
-    mid_point = Point((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
-    return polygon_crossing(mid_point, graph.polygons[p1.polygon_id])
+    points = points_on_line(p1, p2, EPS)
+    for point in points:
+        if polygon_crossing(point, graph.polygons[p1.polygon_id]):
+            return True
+    return False
 
 
 def point_in_polygon(p, graph):
@@ -384,3 +389,26 @@ class OpenEdges(object):
 
     def __getitem__(self, index):
         return self._open_edges[index]
+
+
+def points_on_line(p1, p2, eps):
+    """Generate a list of Points on the line segment from p1 to p2 with step size eps."""
+    dx = p2.x - p1.x
+    dy = p2.y - p1.y
+
+    length = (dx**2 + dy**2)**0.5
+
+    num_steps = int(length / eps)
+    if length < eps:
+        mid_x = (p1.x + p2.x) / 2
+        mid_y = (p1.y + p2.y) / 2
+        return [Point(mid_x, mid_y)]
+
+    points = list()
+    for i in range(num_steps + 1):
+        t = i / num_steps
+        x = p1.x + t * dx
+        y = p1.y + t * dy
+        points.append(Point(x, y))
+
+    return points
