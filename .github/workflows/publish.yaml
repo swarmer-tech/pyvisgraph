@@ -1,0 +1,12 @@
+name: Publish
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-python:
+    permissions: write-all
+    uses: swarmer-tech/common-gha/.github/workflows/build-push-pypi.yml@master
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
